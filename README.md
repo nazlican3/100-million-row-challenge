@@ -2,7 +2,7 @@
 > - The challenge is live; you have until March 15, 11:59PM CET to submit your entry. 
 > - Check out [the Leaderboard](https://marcosmarcolin.github.io/leaderboard-100-million-row-challenge/) (props to [Marcos](https://github.com/marcosmarcolin)). 
 > - Comment on your PR with `/bench` to request a re-run.
-> - [Join our Discord](https://discord.com/channels/1236153076688359495/1476516330017394829) to discuss the challenge with other participants.
+> - [Join our Discord](https://tempestphp.com/discord) and then come to [this thread](https://discord.com/channels/1236153076688359495/1476516330017394829) to discuss the challenge with other participants.
     
 Welcome to the 100-million-row challenge in PHP! Your goal is to parse a data set of page visits into a JSON file. This repository contains all you need to get started locally. Submitting an entry is as easy as sending a pull request to this repository. This competition will run for two weeks: from Feb 24 to March 15, 2026. When it's done, the top three fastest solutions will win a prize; there's also a dedicated prize for a single-core solution, and a participation prize that everyone can win! 
 
