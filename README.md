@@ -81,7 +81,7 @@ Send a pull request to this repository with your solution. The title of your pul
 > [!IMPORTANT]
 > You can request a re-run by writing a comment on your PR saying `/bench`. We'll still manually verify whether your submission can be run.
 
-If you rather want to participate in the single-thread challenge, please mention this in your PR so that we can add the [🚂 single thread](https://github.com/tempestphp/100-million-row-challenge/issues?q=state%3Aopen%20label%3A%22%F0%9F%9A%82%20single%20thread%22) label.
+If you rather want to participate in the single-thread challenge, please mention this in your PR so that we can add the [🚂 single thread](https://github.com/tempestphp/100-million-row-challenge/issues?q=state%3Aopen%20label%3A%22%F0%9F%9A%82%20single%20thread%22) label. You're allowed to submit an entry for both single-thread and multi-thread solutions. You can only win one prize though, so if you win in both categories, second place single-thread will be given the prize.
 
 ## A note on copying other branches
 
