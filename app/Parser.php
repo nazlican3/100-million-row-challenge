@@ -47,8 +47,6 @@ final class Parser
             unset($daily);
         }
 
-        fclose($handle);
-
         foreach ($visits as &$dailyVisits) {
             if (count($dailyVisits) > 1) {
                 ksort($dailyVisits);
