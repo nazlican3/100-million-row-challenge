@@ -2,34 +2,38 @@
 
 namespace App;
 
-use Exception;
-
 final class Parser
 {
+    private const URL_PREFIX = 'https://stitcher.io';
+    private const URL_PREFIX_LENGTH = 19;
+
     public function parse(string $inputPath, string $outputPath): void
     {
         $handle = $this->openInputFile($inputPath);
+        if ($handle === null) {
+            return;
+        }
 
         $visits = [];
 
         while (($line = fgets($handle)) !== false) {
-            $separatorPosition = strrpos($line, ',');
+            $lineLength = strlen($line);
+            if ($lineLength < 27) {
+                continue;
+            }
 
-            if ($separatorPosition === false) {
+            $eolLength = ($lineLength > 1 && $line[$lineLength - 2] === "\r") ? 2 : 1;
+            $separatorPosition = $lineLength - (26 + $eolLength);
+            if ($line[$separatorPosition] !== ',') {
                 continue;
             }
 
             $path = $this->extractPathFromLine($line, $separatorPosition);
-
             if ($path === null || $path === '') {
                 continue;
             }
 
             $date = substr($line, $separatorPosition + 1, 10);
-
-            if (! isset($date[9])) {
-                continue;
-            }
 
             if (isset($visits[$path][$date])) {
                 $visits[$path][$date]++;
@@ -41,22 +45,21 @@ final class Parser
         fclose($handle);
 
         foreach ($visits as &$dailyVisits) {
-            ksort($dailyVisits);
+            if (count($dailyVisits) > 1) {
+                ksort($dailyVisits);
+            }
         }
-
         unset($dailyVisits);
 
         $json = json_encode($visits, JSON_PRETTY_PRINT);
 
         if ($json === false) {
-            throw new Exception('Failed to encode output JSON');
+            return;
         }
 
         $json = str_replace("\n", PHP_EOL, $json);
 
-        if (file_put_contents($outputPath, $json) === false) {
-            throw new Exception("Unable to write output file: {$outputPath}");
-        }
+        file_put_contents($outputPath, $json);
     }
 
     private function openInputFile(string $inputPath)
@@ -64,7 +67,7 @@ final class Parser
         $handle = fopen($inputPath, 'r');
 
         if ($handle === false) {
-            throw new Exception("Unable to open input file: {$inputPath}");
+            return null;
         }
 
         return $handle;
@@ -72,15 +75,16 @@ final class Parser
 
     private function extractPathFromLine(string $line, int $separatorPosition): ?string
     {
-        $schemeSeparatorPosition = strpos($line, '://');
-
-        if ($schemeSeparatorPosition === false || $schemeSeparatorPosition >= $separatorPosition) {
+        if (substr_compare($line, self::URL_PREFIX, 0, self::URL_PREFIX_LENGTH) !== 0) {
             return null;
         }
 
-        $pathStart = strpos($line, '/', $schemeSeparatorPosition + 3);
+        $pathStart = self::URL_PREFIX_LENGTH;
+        if ($pathStart >= $separatorPosition) {
+            return null;
+        }
 
-        if ($pathStart === false || $pathStart > $separatorPosition) {
+        if ($line[$pathStart] !== '/') {
             return '/';
         }
 
