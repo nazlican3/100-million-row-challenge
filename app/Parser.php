@@ -23,6 +23,7 @@ final class Parser
 
             $eolLength = ($lineLength > 1 && $line[$lineLength - 2] === "\r") ? 2 : 1;
             $separatorPosition = $lineLength - (26 + $eolLength);
+
             if ($line[$separatorPosition] !== ',') {
                 continue;
             }
@@ -40,10 +41,7 @@ final class Parser
             }
 
             $date = substr($line, $separatorPosition + 1, 10);
-
-            $daily = &$visits[$path];
-            $daily[$date] = ($daily[$date] ?? 0) + 1;
-            unset($daily);
+            $visits[$path][$date] = ($visits[$path][$date] ?? 0) + 1;
         }
 
         foreach ($visits as &$dailyVisits) {
