@@ -13,16 +13,29 @@ final class Parser
         $visits = [];
 
         while (($line = fgets($handle)) !== false) {
-            $line = rtrim($line, "\r\n");
+            $separatorPosition = strrpos($line, ',');
 
-            $parsedVisit = $this->parseVisitLine($line);
-
-            if ($parsedVisit === null) {
+            if ($separatorPosition === false) {
                 continue;
             }
 
-            [$path, $date] = $parsedVisit;
-            $visits[$path][$date] = ($visits[$path][$date] ?? 0) + 1;
+            $path = $this->extractPathFromLine($line, $separatorPosition);
+
+            if ($path === null || $path === '') {
+                continue;
+            }
+
+            $date = substr($line, $separatorPosition + 1, 10);
+
+            if (! isset($date[9])) {
+                continue;
+            }
+
+            if (isset($visits[$path][$date])) {
+                $visits[$path][$date]++;
+            } else {
+                $visits[$path][$date] = 1;
+            }
         }
 
         fclose($handle);
@@ -57,68 +70,33 @@ final class Parser
         return $handle;
     }
 
-    private function parseVisitLine(string $line): ?array
+    private function extractPathFromLine(string $line, int $separatorPosition): ?string
     {
-        if ($line === '') {
+        $schemeSeparatorPosition = strpos($line, '://');
+
+        if ($schemeSeparatorPosition === false || $schemeSeparatorPosition >= $separatorPosition) {
             return null;
         }
 
-        $separatorPosition = strrpos($line, ',');
+        $pathStart = strpos($line, '/', $schemeSeparatorPosition + 3);
 
-        if ($separatorPosition === false) {
-            return null;
-        }
-
-        $url = substr($line, 0, $separatorPosition);
-        $timestamp = substr($line, $separatorPosition + 1);
-
-        if ($timestamp === '') {
-            return null;
-        }
-
-        $path = $this->extractPath($url);
-
-        if ($path === null || $path === '') {
-            return null;
-        }
-
-        $date = substr($timestamp, 0, 10);
-
-        if (strlen($date) !== 10) {
-            return null;
-        }
-
-        return [$path, $date];
-    }
-
-    private function extractPath(string $url): ?string
-    {
-        $schemeSeparatorPosition = strpos($url, '://');
-
-        if ($schemeSeparatorPosition === false) {
-            return null;
-        }
-
-        $hostStart = $schemeSeparatorPosition + 3;
-        $pathStart = strpos($url, '/', $hostStart);
-
-        if ($pathStart === false) {
+        if ($pathStart === false || $pathStart > $separatorPosition) {
             return '/';
         }
 
-        $queryStart = strpos($url, '?', $pathStart);
-        $fragmentStart = strpos($url, '#', $pathStart);
+        $queryStart = strpos($line, '?', $pathStart);
+        $fragmentStart = strpos($line, '#', $pathStart);
 
-        if ($queryStart === false) {
-            $queryStart = strlen($url);
+        if ($queryStart === false || $queryStart > $separatorPosition) {
+            $queryStart = $separatorPosition;
         }
 
-        if ($fragmentStart === false) {
-            $fragmentStart = strlen($url);
+        if ($fragmentStart === false || $fragmentStart > $separatorPosition) {
+            $fragmentStart = $separatorPosition;
         }
 
         $pathEnd = min($queryStart, $fragmentStart);
 
-        return substr($url, $pathStart, $pathEnd - $pathStart);
+        return substr($line, $pathStart, $pathEnd - $pathStart);
     }
 }
