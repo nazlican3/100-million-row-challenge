@@ -76,9 +76,9 @@ final class Parser
             return null;
         }
 
-        $path = parse_url($url, PHP_URL_PATH);
+        $path = $this->extractPath($url);
 
-        if (! is_string($path) || $path === '') {
+        if ($path === null || $path === '') {
             return null;
         }
 
@@ -89,5 +89,36 @@ final class Parser
         }
 
         return [$path, $date];
+    }
+
+    private function extractPath(string $url): ?string
+    {
+        $schemeSeparatorPosition = strpos($url, '://');
+
+        if ($schemeSeparatorPosition === false) {
+            return null;
+        }
+
+        $hostStart = $schemeSeparatorPosition + 3;
+        $pathStart = strpos($url, '/', $hostStart);
+
+        if ($pathStart === false) {
+            return '/';
+        }
+
+        $queryStart = strpos($url, '?', $pathStart);
+        $fragmentStart = strpos($url, '#', $pathStart);
+
+        if ($queryStart === false) {
+            $queryStart = strlen($url);
+        }
+
+        if ($fragmentStart === false) {
+            $fragmentStart = strlen($url);
+        }
+
+        $pathEnd = min($queryStart, $fragmentStart);
+
+        return substr($url, $pathStart, $pathEnd - $pathStart);
     }
 }
