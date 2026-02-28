@@ -41,11 +41,9 @@ final class Parser
 
             $date = substr($line, $separatorPosition + 1, 10);
 
-            if (isset($visits[$path][$date])) {
-                $visits[$path][$date]++;
-            } else {
-                $visits[$path][$date] = 1;
-            }
+            $daily = &$visits[$path];
+            $daily[$date] = ($daily[$date] ?? 0) + 1;
+            unset($daily);
         }
 
         fclose($handle);
