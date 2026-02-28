@@ -4,8 +4,7 @@ namespace App;
 
 final class Parser
 {
-    private const URL_PREFIX = 'https://stitcher.io';
-    private const URL_PREFIX_LENGTH = 19;
+    private const PATH_START = 19;
 
     public function parse(string $inputPath, string $outputPath): void
     {
@@ -28,11 +27,7 @@ final class Parser
                 continue;
             }
 
-            if (substr_compare($line, self::URL_PREFIX, 0, self::URL_PREFIX_LENGTH) !== 0) {
-                continue;
-            }
-
-            $pathStart = self::URL_PREFIX_LENGTH;
+            $pathStart = self::PATH_START;
             if ($pathStart >= $separatorPosition) {
                 continue;
             }
@@ -40,19 +35,8 @@ final class Parser
             if ($line[$pathStart] !== '/') {
                 $path = '/';
             } else {
-                $queryStart = strpos($line, '?', $pathStart);
-                $fragmentStart = strpos($line, '#', $pathStart);
-
-                if ($queryStart === false || $queryStart > $separatorPosition) {
-                    $queryStart = $separatorPosition;
-                }
-
-                if ($fragmentStart === false || $fragmentStart > $separatorPosition) {
-                    $fragmentStart = $separatorPosition;
-                }
-
-                $pathEnd = min($queryStart, $fragmentStart);
-                $path = substr($line, $pathStart, $pathEnd - $pathStart);
+                $pathLength = strcspn($line, '?#,', $pathStart);
+                $path = substr($line, $pathStart, $pathLength);
             }
 
             $date = substr($line, $separatorPosition + 1, 10);
