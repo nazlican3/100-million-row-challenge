@@ -9,8 +9,8 @@ final class Parser
 
     public function parse(string $inputPath, string $outputPath): void
     {
-        $handle = $this->openInputFile($inputPath);
-        if ($handle === null) {
+        $handle = fopen($inputPath, 'r');
+        if ($handle === false) {
             return;
         }
 
@@ -28,9 +28,31 @@ final class Parser
                 continue;
             }
 
-            $path = $this->extractPathFromLine($line, $separatorPosition);
-            if ($path === null || $path === '') {
+            if (substr_compare($line, self::URL_PREFIX, 0, self::URL_PREFIX_LENGTH) !== 0) {
                 continue;
+            }
+
+            $pathStart = self::URL_PREFIX_LENGTH;
+            if ($pathStart >= $separatorPosition) {
+                continue;
+            }
+
+            if ($line[$pathStart] !== '/') {
+                $path = '/';
+            } else {
+                $queryStart = strpos($line, '?', $pathStart);
+                $fragmentStart = strpos($line, '#', $pathStart);
+
+                if ($queryStart === false || $queryStart > $separatorPosition) {
+                    $queryStart = $separatorPosition;
+                }
+
+                if ($fragmentStart === false || $fragmentStart > $separatorPosition) {
+                    $fragmentStart = $separatorPosition;
+                }
+
+                $pathEnd = min($queryStart, $fragmentStart);
+                $path = substr($line, $pathStart, $pathEnd - $pathStart);
             }
 
             $date = substr($line, $separatorPosition + 1, 10);
@@ -60,47 +82,5 @@ final class Parser
         $json = str_replace("\n", PHP_EOL, $json);
 
         file_put_contents($outputPath, $json);
-    }
-
-    private function openInputFile(string $inputPath)
-    {
-        $handle = fopen($inputPath, 'r');
-
-        if ($handle === false) {
-            return null;
-        }
-
-        return $handle;
-    }
-
-    private function extractPathFromLine(string $line, int $separatorPosition): ?string
-    {
-        if (substr_compare($line, self::URL_PREFIX, 0, self::URL_PREFIX_LENGTH) !== 0) {
-            return null;
-        }
-
-        $pathStart = self::URL_PREFIX_LENGTH;
-        if ($pathStart >= $separatorPosition) {
-            return null;
-        }
-
-        if ($line[$pathStart] !== '/') {
-            return '/';
-        }
-
-        $queryStart = strpos($line, '?', $pathStart);
-        $fragmentStart = strpos($line, '#', $pathStart);
-
-        if ($queryStart === false || $queryStart > $separatorPosition) {
-            $queryStart = $separatorPosition;
-        }
-
-        if ($fragmentStart === false || $fragmentStart > $separatorPosition) {
-            $fragmentStart = $separatorPosition;
-        }
-
-        $pathEnd = min($queryStart, $fragmentStart);
-
-        return substr($line, $pathStart, $pathEnd - $pathStart);
     }
 }
