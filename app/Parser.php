@@ -13,7 +13,6 @@ final class Parser
             return;
         }
 
-        gc_disable();
         $visits = [];
 
         while (($line = fgets($handle)) !== false) {
@@ -57,7 +56,6 @@ final class Parser
         $json = json_encode($visits, JSON_PRETTY_PRINT);
 
         if ($json === false) {
-            gc_enable();
             return;
         }
 
@@ -65,7 +63,6 @@ final class Parser
             $json = str_replace("\n", PHP_EOL, $json);
         }
 
-        gc_enable();
         file_put_contents($outputPath, $json);
     }
 }
