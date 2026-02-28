@@ -61,7 +61,9 @@ final class Parser
             return;
         }
 
-        $json = str_replace("\n", PHP_EOL, $json);
+        if (PHP_EOL !== "\n") {
+            $json = str_replace("\n", PHP_EOL, $json);
+        }
 
         file_put_contents($outputPath, $json);
     }
